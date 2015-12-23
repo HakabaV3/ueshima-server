@@ -66,9 +66,11 @@ _.pPush = function(gameQuery, moveQuery, userObj, gameObj) {
 	moveQuery.player = userObj.name;
 	moveQuery.playerId = userObj.uuid;
 	var partner = gameObj.players[0] == userObj.name ? gameObj.players[1] : gameObj.players[0]
+	console.log(partner);
 
 	return new Promise(function(resolve, reject) {
 		model.findOneAndUpdate(gameQuery, {
+			turn: partner,
 			$push: {
 				moves: moveQuery
 			}
