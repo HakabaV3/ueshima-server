@@ -2,7 +2,7 @@
 
 ## API
 
-- エントリーポイントは`/api/v1`
+- エントリーポイントは`http://ueshima.hakaba.xyz/api/v1`
 - `POST /user`以外のリクエストに必ずトークンを付与する
 - トークンのキーは`X-Session-Token`
 
