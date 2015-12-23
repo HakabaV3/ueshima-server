@@ -11,19 +11,10 @@ var MoveSchema = new mongoose.Schema({
 	gameId: String,
 	player: String,
 	playerId: String,
-	// uuid: String,
+	x: Number,
+	y: Number,
 	created: Number,
 	updated: Number
-});
-
-MoveSchema.pre('save', function(next) {
-	cosole.log('Move.presave');
-	now = parseInt(Date.now() / 1000);
-	this.updated = now;
-	if (!this.created) this.created = now;
-	// this.uuid = uuid.v4();
-
-	next();
 });
 
 module.exports = MoveSchema;

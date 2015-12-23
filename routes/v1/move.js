@@ -31,8 +31,8 @@ router.post('/', function(req, res) {
 			uuid: req.session.gameId
 		},
 		moveQuery = {
-			x: req.query.x,
-			y: req.query.y,
+			x: parseInt(req.query.x),
+			y: parseInt(req.query.y),
 			gameId: req.session.gameId,
 			created: unixNow,
 			updated: unixNow
