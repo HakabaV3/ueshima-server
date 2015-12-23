@@ -16,18 +16,18 @@ switch (config.ENV) {
 	case 'development-sakura':
 		Object.assign(config, {
 			DB_HOST: 'localhost',
-			DB_PORT: 27017,
+			DB_PORT: 28017,
 			DB_NAME: 'ueshima-server-dev',
-			EXPRESS_PORT: 3000,
+			EXPRESS_PORT: 4000,
 		});
 		break;
 
 	case 'staging':
 		Object.assign(config, {
 			DB_HOST: 'localhost',
-			DB_PORT: 27018,
+			DB_PORT: 28018,
 			DB_NAME: 'izu-server-staging',
-			EXPRESS_PORT: 3001,
+			EXPRESS_PORT: 4001,
 		});
 		break;
 
