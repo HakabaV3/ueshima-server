@@ -39,11 +39,11 @@ Error.invalidMove = function(x, y) {
 	};
 };
 
-Error.invalidPlayer = function(user) {
+Error.invalidPlayer = function(playerName) {
 	return {
 		code: 500,
 		error: {
-			message: `It's not ${user} turn now.`
+			message: `It's not ${playerName} turn now.`
 		}
 	};
 };

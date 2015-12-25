@@ -157,7 +157,7 @@ const DIR = [
 ];
 
 function _checkIsPuttable(px, py, board, players, me) {
-	const ME = players[0] == me ? CellType.BLACK : CellType.WHITE;
+	const ME = players[0] === me.name ? CellType.BLACK : CellType.WHITE;
 	const ENEMY = ME == CellType.BLACK ? CellType.WHITE : CellType.BLACK;
 
 	if (board[py * 10 + px] !== CellType.EMPTY) return false;
@@ -182,8 +182,8 @@ function _checkIsPuttable(px, py, board, players, me) {
 }
 
 function _putMove(px, py, board, players, me) {
-	const ME = players[0] == me ? CellType.BLACK : CellType.WHITE;
-	const ENEMY = ME == CellType.BLACK ? CellType.WHITE : CellType.BLACK;
+	const ME = players[0] === me.name ? CellType.BLACK : CellType.WHITE;
+	const ENEMY = ME === CellType.BLACK ? CellType.WHITE : CellType.BLACK;
 
 	board[py * 10 + px] = ME;
 
@@ -229,14 +229,14 @@ _.pPutMove = function(px, py, game, me) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
-		if (!_checkIsPuttable(px, py, game.board, me)) return reject(Error.invalidMove(px, py));
+		if (!_checkIsPuttable(px, py, game.board, game.players, me)) return reject(Error.invalidMove(px, py));
 
 		var enemy = game.players[0] === me.name ? game.players[1] : game.players[0];
 
-		console.log(enemy);
-
-		game.board = _putMove(px, py, game.board, me);
+		game.board = _putMove(px, py, game.board, game.players, me);
+		console.log(game.turn);
 		game.turn = _checkIsEnableEnemyToPut(game.board, game.players, enemy) ? enemy : me.name;
+		console.log(game.turn);
 		game.moves.push({
 			x: px,
 			y: py,
