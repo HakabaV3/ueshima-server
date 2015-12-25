@@ -156,8 +156,8 @@ const DIR = [
 	[-1, -1]
 ];
 
-function _checkIsPuttable(px, py, board, players, me) {
-	const ME = players[0] === me.name ? CellType.BLACK : CellType.WHITE;
+function _checkIsPuttable(px, py, board, players, playerName) {
+	const ME = players[0] === playerName ? CellType.BLACK : CellType.WHITE;
 	const ENEMY = ME == CellType.BLACK ? CellType.WHITE : CellType.BLACK;
 
 	if (board[py * 10 + px] !== CellType.EMPTY) return false;
@@ -181,8 +181,8 @@ function _checkIsPuttable(px, py, board, players, me) {
 	return false;
 }
 
-function _putMove(px, py, board, players, me) {
-	const ME = players[0] === me.name ? CellType.BLACK : CellType.WHITE;
+function _putMove(px, py, board, players, playerName) {
+	const ME = players[0] === playerName ? CellType.BLACK : CellType.WHITE;
 	const ENEMY = ME === CellType.BLACK ? CellType.WHITE : CellType.BLACK;
 
 	board[py * 10 + px] = ME;
@@ -214,10 +214,10 @@ function _putMove(px, py, board, players, me) {
 	return board;
 }
 
-function _checkIsEnableEnemyToPut(board, players, enemy) {
+function _checkIsEnableEnemyToPut(board, players, enemyName) {
 	for (var x = 1; x <= 8; x++) {
 		for (var y = 1; y <= 8; y++) {
-			if (_checkIsPuttable(x, y, board, players, enemy)) {
+			if (_checkIsPuttable(x, y, board, players, enemyName)) {
 				return true;
 			}
 		}
@@ -229,13 +229,13 @@ _.pPutMove = function(px, py, game, me) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
-		if (!_checkIsPuttable(px, py, game.board, game.players, me)) return reject(Error.invalidMove(px, py));
+		if (!_checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
-		var enemy = game.players[0] === me.name ? game.players[1] : game.players[0];
+		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
 
-		game.board = _putMove(px, py, game.board, game.players, me);
+		game.board = _putMove(px, py, game.board, game.players, me.name);
 		console.log(game.turn);
-		game.turn = _checkIsEnableEnemyToPut(game.board, game.players, enemy) ? enemy : me.name;
+		game.turn = _checkIsEnableEnemyToPut(game.board, game.players, enemyName) ? enemyName : me.name;
 		console.log(game.turn);
 		game.moves.push({
 			x: px,
