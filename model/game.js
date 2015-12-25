@@ -215,8 +215,8 @@ function _putMove(px, py, board, players, me) {
 }
 
 function _checkIsEnableEnemyToPut(board, players, enemy) {
-	for (var x = 1; x < DIR.length - 2; x++) {
-		for (var y = 1; y < DIR.length - 2; y++) {
+	for (var x = 1; x <= 8; x++) {
+		for (var y = 1; y <= 8; y++) {
 			if (_checkIsPuttable(x, y, board, players, enemy)) {
 				return true;
 			}
