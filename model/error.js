@@ -30,4 +30,22 @@ Error.unauthorized = {
 	}
 };
 
+Error.invalidMove = function(x, y) {
+	return {
+		code: 500,
+		error: {
+			message: `MOVE_IS_NOT_PUTTABLE at (${x}, ${y})`
+		}
+	};
+};
+
+Error.invalidPlayer = function(user) {
+	return {
+		code: 500,
+		error: {
+			message: `It's not ${user} turn now.`
+		}
+	};
+};
+
 module.exports = Error;

@@ -1,5 +1,4 @@
 var mongoose = require('../model/db.js'),
-	// UserSchema = require('./user.js'),
 	MoveSchema = require('./move.js'),
 	uuid = require('node-uuid');
 
@@ -10,6 +9,7 @@ var GameSchema = new mongoose.Schema({
 	},
 	players: [String],
 	moves: [MoveSchema],
+	board: [Number],
 	turn: String,
 	uuid: String,
 	created: Number,
@@ -21,8 +21,27 @@ GameSchema.pre('save', function(next) {
 	this.updated = now;
 	if (!this.created) this.created = now;
 	this.uuid = uuid.v4();
+	this.board = _setupBoard();
 
 	next();
 });
+
+const CellType = {
+	BLACK: -1,
+	EMPTY: 0,
+	WHITE: 1,
+};
+
+function _setupBoard() {
+	var board = [];
+	for (var x = 0; x <= 9; x++) {
+		for (var y = 0; y <= 9; y++) {
+			board[y * 10 + x] = CellType.EMPTY;
+		}
+	}
+	board[4 * 10 + 4] = board[5 * 10 + 5] = CellType.BLACK;
+	board[4 * 10 + 5] = board[5 * 10 + 4] = CellType.WHITE;
+	return board;
+}
 
 module.exports = GameSchema;

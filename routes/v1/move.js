@@ -21,26 +21,23 @@ router.post('/', function(req, res) {
 	console.log(`[${req.method}] ${req.url}`);
 	if (!req.query.x) return Error.pipeErrorRender(req, res, Error.invalidParameter);
 	if (!req.query.y) return Error.pipeErrorRender(req, res, Error.invalidParameter);
-	if (!req.headers['x-session-token']) return Error.pipeErrorRender(req, res, Error.invalidParameter);
+	if (!req.headers['x-session-token']) return Error.pipeErrorRender(req, res, Error.unauthorized);
 
-	var unixNow = parseInt(Date.now() / 1000),
-		userQuery = {
+	var userQuery = {
 			token: req.headers['x-session-token']
 		},
 		gameQuery = {
 			uuid: req.session.gameId
 		},
-		moveQuery = {
-			x: parseInt(req.query.x),
-			y: parseInt(req.query.y),
-			gameId: req.session.gameId,
-			created: unixNow,
-			updated: unixNow
-		};
+		x = parseInt(req.query.x),
+		y = parseInt(req.query.y);
+
 	Promise.all([
 			User.pGetOne(userQuery),
 			Game.pGetOne(gameQuery)
-		]).then(result => Game.pPush(gameQuery, moveQuery, result[0], result[1]))
+		])
+		.then(result => Game.pPutMove(x, y, result[1], result[0]))
+		.then(game => Game.pPush(game))
 		.then(game => Game.pipeSuccessRender(req, res, game))
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });
