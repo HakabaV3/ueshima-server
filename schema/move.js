@@ -1,6 +1,4 @@
 var mongoose = require('../model/db.js'),
-	UserSchema = require('./user.js'),
-	GameSchema = require('./game.js'),
 	uuid = require('node-uuid');
 
 var MoveSchema = new mongoose.Schema({

@@ -1,5 +1,6 @@
 var mongoose = require('../model/db.js'),
 	MoveSchema = require('./move.js'),
+	ChatSchema = require('./chat.js'),
 	uuid = require('node-uuid');
 
 var GameSchema = new mongoose.Schema({
@@ -9,6 +10,7 @@ var GameSchema = new mongoose.Schema({
 	},
 	players: [String],
 	moves: [MoveSchema],
+	chats: [ChatSchema],
 	board: [Number],
 	turn: String,
 	uuid: String,

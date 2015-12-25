@@ -103,6 +103,14 @@ _.pipeSuccessRender = function(req, res, game) {
 			}
 		}),
 		board: game.board,
+		chats: game.chats.map(function(chat) {
+			return {
+				player: chat.player,
+				playerId: chat.playerId,
+				text: chat.text,
+				created: chat.created
+			}
+		}),
 		created: game.created,
 		updated: game.updated
 	};
@@ -129,6 +137,7 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 					}
 				}),
 				board: game.board,
+				chats: game.chats,
 				created: game.created,
 				updated: game.updated
 			};
@@ -247,6 +256,39 @@ _.pPutMove = function(px, py, game, me) {
 			updated: parseInt(Date.now() / 1000)
 		});
 		resolve(game);
+	});
+};
+
+_.pPushChat = function(gameObj, currentUser, text) {
+	console.log('Game.pPushChat');
+	gameObj.chats.push({
+		gameId: gameObj.uuid,
+		player: currentUser.name,
+		playerId: currentUser.uuid,
+		text: text,
+		created: parseInt(Date.now() / 1000)
+	});
+	console.log(gameObj.chats);
+	return new Promise(function(resolve, reject) {
+		var gameQuery = {
+				uuid: gameObj.uuid
+			},
+			chatQuery = gameObj.chats[gameObj.chats.length - 1];
+
+		model.findOneAndUpdate(gameQuery, {
+			$push: {
+				chats: chatQuery
+			}
+		}, {
+			safe: true,
+			upsert: true,
+			new: true
+		}, function(err, updatedGame) {
+			if (err) return reject(Error.mongoose(500, err));
+			if (!updatedGame) return reject(Error.invalidParameter);
+
+			resolve(updatedGame);
+		});
 	});
 };
 

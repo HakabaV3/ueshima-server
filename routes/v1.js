@@ -2,7 +2,8 @@ var express = require('express'),
 	router = express.Router(),
 	userRouter = require('./v1/user'),
 	gameRouter = require('./v1/game'),
-	moveRouter = require('./v1/move');
+	moveRouter = require('./v1/move'),
+	chatRouter = require('./v1/chat');
 
 express.response.ok = function(code, result) {
 	return this.json({
@@ -37,6 +38,13 @@ router.use('/game/:gameId/move', [
 		next();
 	},
 	moveRouter
+]);
+router.use('/game/:gameId/chat', [
+	function(req, res, next) {
+		req.session.gameId = req.params.gameId;
+		next();
+	},
+	chatRouter
 ]);
 
 module.exports = router;
