@@ -88,6 +88,7 @@ _.checkIsEnablePlayerToPut = function(board, players, playerName) {
 
 _.puttablePoints = function(board, players, playerName) {
 	var points = [];
+	if (players.indexOf(playerName) === -1) return [];
 	for (var x = 1; x <= 8; x++) {
 		for (var y = 1; y <= 8; y++) {
 			if (_.checkIsPuttable(x, y, board, players, playerName)) {

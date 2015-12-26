@@ -44,6 +44,7 @@ _.pGetOne = function(query, user) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!game) return reject(Error.invalidParameter);
 
+			game.currentUser = user;
 			resolve(game);
 		});
 	});
@@ -235,6 +236,7 @@ _.pPushGuest = function(gameObj, guestName) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
+			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
 			resolve(updatedGame);
 		});
 	});
