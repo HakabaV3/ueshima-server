@@ -80,6 +80,12 @@ POST /game
 						"playerId": "dooor_id"
 					}
 				],
+				"points": [
+                    53,
+                    64,
+                    35,
+                    46
+                ],
 				"chats": [
 					{
 						"player": "jinssk",
@@ -104,6 +110,7 @@ POST /game
 				"created": 12345678,
 				"updated": 12345678,
 				"moves": [Moveの配列],
+				"points": [石の置けるindexの配列],
 				"chats": [Chatの配列]
 			},
 			...
@@ -122,6 +129,7 @@ POST /game
 				"created": 12345678,
 				"updated": 12345678,
 				"moves": [Moveの配列],
+				"points": [石の置けるindexの配列],
 				"chats": [Chatの配列]
 			}
 		]
@@ -166,6 +174,7 @@ POST /game
 			"created": 12345678,
 			"updated": 12345678,
 			"moves": [],
+			"points": [石の置けるindexの配列],
 			"chats": []
 		}
 	}
@@ -221,6 +230,7 @@ POST /game
 					"playerId": "dooor_id"
 				}
 			],
+			"points": [石の置けるindexの配列],
 			"chats": [
 				{
 					"player": "jinssk",
@@ -283,6 +293,7 @@ POST /game
 					"playerId": "dooor_id"
 				}
 			],
+			"points": [石の置けるindexの配列],
 			"chats": [
 				{
 					"player": "jinssk",
