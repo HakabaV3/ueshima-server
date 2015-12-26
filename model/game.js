@@ -140,8 +140,8 @@ _.pPutMove = function(px, py, game, me) {
 		if (!GameHelper.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
 		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0],
-			turn = GameHelper.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name,
 			board = GameHelper.putMove(px, py, game.board, game.players, me.name),
+			turn = GameHelper.checkIsEnablePlayerToPut(board, game.players, enemyName) ? enemyName : me.name,
 			gameQuery = {
 				uuid: game.uuid
 			},
