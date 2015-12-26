@@ -5,18 +5,6 @@ var express = require('express'),
 	Game = require('../../model/game.js'),
 	Error = require('../../model/error.js');
 
-function _generateObjectId(objectId) {
-	try {
-		return ObjectId = new ObjectId(objectId);
-	} catch (err) {
-		return res.ng(500, {
-			error: {
-				messgae: 'INVALID_PARAMETER'
-			}
-		});
-	}
-}
-
 router.post('/', function(req, res) {
 	console.log(`[${req.method}] ${req.url}`);
 	if (!req.query.x) return Error.pipeErrorRender(req, res, Error.invalidParameter);
@@ -37,7 +25,7 @@ router.post('/', function(req, res) {
 			Game.pGetOne(gameQuery)
 		])
 		.then(result => Game.pPutMove(x, y, result[1], result[0]))
-		.then(game => Game.pPush(game))
+		// .then(game => Game.pPush(game))
 		.then(game => Game.pipeSuccessRender(req, res, game))
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });

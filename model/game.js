@@ -1,5 +1,6 @@
 var mongoose = require('./db.js'),
 	schema = require('../schema/game.js'),
+	GameManager = require('../manager/game.js'),
 	Error = require('./error.js');
 
 var _ = {},
@@ -24,7 +25,9 @@ _.pGet = function(user, option) {
 	return new Promise(function(resolve, reject) {
 		model.find(query, {}, option, function(err, games) {
 			if (err) return reject(Error.mongoose(500, err));
-
+			games.map(function(game) {
+				game.points = GameManager.puttablePoints(game.board, game.players, user.name);
+			});
 			resolve(games);
 		});
 	});
@@ -60,6 +63,7 @@ _.pCreate = function(users) {
 				if (err) return reject(Error.mongoose(500, err));
 				if (!createdGame) return reject(Error.invalidParameter);
 
+				createdGame.points = GameManager.puttablePoints(createdGame.board, createdGame.players, users[0].name);
 				return resolve(createdGame);
 			});
 	});
@@ -110,6 +114,7 @@ _.pipeSuccessRender = function(req, res, game) {
 			}
 		}),
 		board: game.board,
+		points: game.points,
 		chats: game.chats.map(function(chat) {
 			return {
 				player: chat.player,
@@ -145,6 +150,7 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 					}
 				}),
 				board: game.board,
+				points: game.points,
 				chats: game.chats,
 				created: game.created,
 				updated: game.updated
@@ -153,106 +159,17 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 	});
 };
 
-/*-----------------------------------------------------------------------
- * About handling game
- */
-const CellType = {
-	BLACK: -1,
-	EMPTY: 0,
-	WHITE: 1,
-};
-
-const DIR = [
-	[0, -1],
-	[1, -1],
-	[1, 0],
-	[1, 1],
-	[0, 1],
-	[-1, 1],
-	[-1, 0],
-	[-1, -1]
-];
-
-function _checkIsPuttable(px, py, board, players, playerName) {
-	const ME = players[0] === playerName ? CellType.BLACK : CellType.WHITE;
-	const ENEMY = ME == CellType.BLACK ? CellType.WHITE : CellType.BLACK;
-
-	if (board[py * 10 + px] !== CellType.EMPTY) return false;
-	for (var d = 0; d < DIR.length; d++) {
-		var x = px + DIR[d][0],
-			y = py + DIR[d][1];
-
-		if (board[y * 10 + x] !== ENEMY) continue;
-
-		while (true) {
-			x += DIR[d][0];
-			y += DIR[d][1];
-
-			if (board[y * 10 + x] === CellType.EMPTY) {
-				break;
-			} else if (board[y * 10 + x] === ME) {
-				return true
-			}
-		}
-	}
-	return false;
-}
-
-function _putMove(px, py, board, players, playerName) {
-	const ME = players[0] === playerName ? CellType.BLACK : CellType.WHITE;
-	const ENEMY = ME === CellType.BLACK ? CellType.WHITE : CellType.BLACK;
-
-	board[py * 10 + px] = ME;
-
-	for (var d = 0; d < DIR.length; d++) {
-		var x = px + DIR[d][0],
-			y = py + DIR[d][1];
-
-		if (board[y * 10 + x] !== ENEMY) continue;
-
-		while (true) {
-			x += DIR[d][0];
-			y += DIR[d][1];
-
-			if (board[y * 10 + x] === CellType.EMPTY) {
-				break;
-			} else if (board[y * 10 + x] === ME) {
-				while (true) {
-					x -= DIR[d][0];
-					y -= DIR[d][1];
-					if (x === px && y === py) break;
-
-					board[y * 10 + x] = ME;
-				}
-				break;
-			}
-		}
-	}
-	return board;
-}
-
-function _checkIsEnablePlayerToPut(board, players, playerName) {
-	for (var x = 1; x <= 8; x++) {
-		for (var y = 1; y <= 8; y++) {
-			if (_checkIsPuttable(x, y, board, players, playerName)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 _.pPutMove = function(px, py, game, me) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
 		console.log(game);
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
-		if (!_checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
+		if (!GameManager.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
 		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
 
-		game.board = _putMove(px, py, game.board, game.players, me.name);
-		game.turn = _checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
+		game.board = GameManager.putMove(px, py, game.board, game.players, me.name);
+		game.turn = GameManager.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
 		game.moves.push({
 			x: px,
 			y: py,
@@ -262,7 +179,13 @@ _.pPutMove = function(px, py, game, me) {
 			created: parseInt(Date.now() / 1000),
 			updated: parseInt(Date.now() / 1000)
 		});
-		resolve(game);
+		game.save(function(err, updatedGame) {
+			if (err) return reject(Error.mongoose(500, err));
+			if (!updatedGame) return reject(Error.invalidParameter);
+
+			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, me.name);
+			resolve(updatedGame);
+		})
 	});
 };
 
@@ -298,6 +221,7 @@ _.pPushChat = function(gameObj, currentUser, text) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
+			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, currentUser.name);
 			resolve(updatedGame);
 		});
 	});
