@@ -25,7 +25,6 @@ router.post('/', function(req, res) {
 			Game.pGetOne(gameQuery)
 		])
 		.then(result => Game.pPutMove(x, y, result[1], result[0]))
-		// .then(game => Game.pPush(game))
 		.then(game => Game.pipeSuccessRender(req, res, game))
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });

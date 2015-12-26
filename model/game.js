@@ -4,7 +4,8 @@ var mongoose = require('./db.js'),
 	Error = require('./error.js');
 
 var _ = {},
-	model = mongoose.model('Game', schema);
+	model = mongoose.model('Game', schema),
+	moveModel = mongoose.model('Move', require('../schema/move.js'));
 
 _.pGet = function(user, option) {
 	console.log('Game.pGet');
@@ -67,34 +68,6 @@ _.pCreate = function(users) {
 				createdGame.points = GameHelper.puttablePoints(createdGame.board, createdGame.players, users[0].name);
 				return resolve(createdGame);
 			});
-	});
-};
-
-_.pPush = function(gameObj) {
-	console.log('Game.pPush');
-
-	var gameQuery = {
-			uuid: gameObj.uuid
-		},
-		moveQuery = gameObj.moves[gameObj.moves.length - 1];
-
-	return new Promise(function(resolve, reject) {
-		model.findOneAndUpdate(gameQuery, {
-			turn: gameObj.turn,
-			board: gameObj.board,
-			$push: {
-				moves: moveQuery
-			}
-		}, {
-			safe: true,
-			upsert: true,
-			new: true
-		}, function(err, updatedGame) {
-			if (err) return reject(Error.mongoose(500, err));
-			if (!updatedGame) return reject(Error.invalidParameter);
-
-			resolve(updatedGame);
-		});
 	});
 };
 
@@ -163,30 +136,40 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 _.pPutMove = function(px, py, game, me) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
-		console.log(game);
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
 		if (!GameHelper.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
-		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
-
-		game.board = GameHelper.putMove(px, py, game.board, game.players, me.name);
-		game.turn = GameHelper.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
-		game.moves.push({
-			x: px,
-			y: py,
-			gameId: game.uuid,
-			playerId: me.uuid,
-			player: me.name,
-			created: parseInt(Date.now() / 1000),
-			updated: parseInt(Date.now() / 1000)
-		});
-		game.save(function(err, updatedGame) {
+		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0],
+			turn = GameHelper.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name,
+			board = GameHelper.putMove(px, py, game.board, game.players, me.name),
+			gameQuery = {
+				uuid: game.uuid
+			},
+			move = new moveModel({
+				x: px,
+				y: py,
+				gameId: game.uuid,
+				playerId: me.uuid,
+				player: me.name,
+				created: parseInt(Date.now() / 1000),
+				updated: parseInt(Date.now() / 1000)
+			});
+		model.findOneAndUpdate(gameQuery, {
+			turn: turn,
+			board: board,
+			$push: {
+				moves: move
+			}
+		}, {
+			safe: true,
+			new: true
+		}, function(err, updatedGame) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
 			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, me.name);
 			resolve(updatedGame);
-		})
+		});
 	});
 };
 
@@ -199,7 +182,6 @@ _.pPushChat = function(gameObj, currentUser, text) {
 		text: text,
 		created: parseInt(Date.now() / 1000)
 	});
-	console.log(gameObj.chats);
 	return new Promise(function(resolve, reject) {
 		var gameQuery = {
 				uuid: gameObj.uuid,
