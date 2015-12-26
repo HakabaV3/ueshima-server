@@ -245,13 +245,14 @@ function _checkIsEnablePlayerToPut(board, players, playerName) {
 _.pPutMove = function(px, py, game, me) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
+		console.log(game);
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
 		if (!_checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
 		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
 
 		game.board = _putMove(px, py, game.board, game.players, me.name);
-		game.turn = _checkIsEnableEnemyToPut(game.board, game.players, enemyName) ? enemyName : me.name;
+		game.turn = _checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
 		game.moves.push({
 			x: px,
 			y: py,
