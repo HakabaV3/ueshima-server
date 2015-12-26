@@ -55,10 +55,39 @@ POST /game
 					"kikurage",
 					"dooor"
 				],
+				"guests": [
+					"jinssk",
+					"susaki"
+				],
+				"board": [
+					0,
+					0,
+					0,
+					...
+					-1,
+					1,
+					0
+				],
 				"turn": "kikurage",
 				"created": 12345678,
 				"updated": 12345678,
-				"moves": [Moveの配列]
+				"moves": [
+					{
+						"x": 6,
+						"y": 4,
+						"created": 1234567890,
+						"player": "dooor",
+						"playerId": "dooor_id"
+					}
+				],
+				"chats": [
+					{
+						"player": "jinssk",
+						"playerId": "jinssk_id",
+						"text": "dooorがんばれ！",
+						"created": 1234567890
+					}
+				]
 			},
 			{
 				"id": "r2984yr9284yhg",
@@ -66,10 +95,16 @@ POST /game
 					"kikurage",
 					"dooor"
 				],
+				"guests": [
+					"jinssk",
+					"susaki",
+				],
+				"board": [盤面の状態],
 				"turn": "kikurage",
 				"created": 12345678,
 				"updated": 12345678,
-				"moves": [Moveの配列]
+				"moves": [Moveの配列],
+				"chats": [Chatの配列]
 			},
 			...
 			{
@@ -78,10 +113,16 @@ POST /game
 					"kikurage",
 					"dooor"
 				],
+				"guests": [
+					"jinssk",
+					"susaki",
+				],
+				"board": [盤面の状態],
 				"turn": "kikurage",
 				"created": 12345678,
 				"updated": 12345678,
-				"moves": [Moveの配列]
+				"moves": [Moveの配列],
+				"chats": [Chatの配列]
 			}
 		]
 	}
@@ -111,10 +152,21 @@ POST /game
 				"kikurage",
 				"dooor"
 			],
+			"guests": [],
+			"board": [
+				0,
+				0,
+				0,
+				...
+				0,
+				0,
+				0
+			],
 			"turn": "kikurage",
 			"created": 12345678,
 			"updated": 12345678,
-			"moves": []
+			"moves": [],
+			"chats": []
 		}
 	}
 }
@@ -144,10 +196,39 @@ POST /game
 				"kikurage",
 				"dooor"
 			],
+			"guests": [
+				"jinssk",
+				"susaki"
+			],
+			"board": [
+				0,
+				0,
+				0,
+				...
+				-1,
+				1,
+				0
+			],
 			"turn": "kikurage",
 			"created": 12345678,
 			"updated": 12345678,
-			"moves": [Moveの配列]
+			"moves": [
+				{
+					"x": 6,
+					"y": 4,
+					"created": 1234567890,
+					"player": "dooor",
+					"playerId": "dooor_id"
+				}
+			],
+			"chats": [
+				{
+					"player": "jinssk",
+					"playerId": "jinssk_id",
+					"text": "dooorがんばれ！",
+					"created": 1234567890
+				}
+			]
 		}
 	}
 }
