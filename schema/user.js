@@ -29,7 +29,7 @@ UserSchema.pre('save', function(next) {
 	now = parseInt(Date.now() / 1000);
 	this.updated = now;
 	if (!this.created) this.created = now;
-	this.uuid = uuid.v4();
+	if (!this.uuid) this.uuid = uuid.v4();
 	this.token = _createToken();
 
 	next();

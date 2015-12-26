@@ -9,7 +9,11 @@ _.pGet = function(user, option) {
 	console.log('Game.pGet');
 	console.log(user);
 	var query = {
-		players: user.name,
+		$or: [{
+			players: user.name
+		}, {
+			guests: user.name
+		}],
 		deleted: false
 	};
 	option = option || {
@@ -29,9 +33,11 @@ _.pGet = function(user, option) {
 _.pGetOne = function(query, user) {
 	console.log('Game.pGetOne');
 	if (user) query.players = user.name;
+	console.log(query);
 
 	return new Promise(function(resolve, reject) {
 		model.findOne(query, function(err, game) {
+			console.log(game);
 			if (err) return reject(Error.mongoose(500, err));
 			if (!game) return reject(Error.invalidParameter);
 
@@ -92,6 +98,7 @@ _.pipeSuccessRender = function(req, res, game) {
 	var gameObj = {
 		id: game.uuid,
 		players: game.players,
+		guests: game.guests,
 		turn: game.turn,
 		moves: game.moves.map(function(move) {
 			return {
@@ -120,12 +127,13 @@ _.pipeSuccessRender = function(req, res, game) {
 };
 
 _.pipeSuccessRenderAll = function(req, res, games) {
-	console.log('Game.pipeSuccessRendeAllr\n');
+	console.log('Game.pipeSuccessRendeAll\n');
 	return res.ok(200, {
 		games: games.map(function(game) {
 			return {
 				id: game.uuid,
 				players: game.players,
+				guests: game.guests,
 				turn: game.turn,
 				moves: game.moves.map(function(move) {
 					return {
@@ -223,10 +231,10 @@ function _putMove(px, py, board, players, playerName) {
 	return board;
 }
 
-function _checkIsEnableEnemyToPut(board, players, enemyName) {
+function _checkIsEnablePlayerToPut(board, players, playerName) {
 	for (var x = 1; x <= 8; x++) {
 		for (var y = 1; y <= 8; y++) {
-			if (_checkIsPuttable(x, y, board, players, enemyName)) {
+			if (_checkIsPuttable(x, y, board, players, playerName)) {
 				return true;
 			}
 		}
@@ -243,9 +251,7 @@ _.pPutMove = function(px, py, game, me) {
 		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
 
 		game.board = _putMove(px, py, game.board, game.players, me.name);
-		console.log(game.turn);
 		game.turn = _checkIsEnableEnemyToPut(game.board, game.players, enemyName) ? enemyName : me.name;
-		console.log(game.turn);
 		game.moves.push({
 			x: px,
 			y: py,
@@ -271,7 +277,12 @@ _.pPushChat = function(gameObj, currentUser, text) {
 	console.log(gameObj.chats);
 	return new Promise(function(resolve, reject) {
 		var gameQuery = {
-				uuid: gameObj.uuid
+				uuid: gameObj.uuid,
+				$or: [{
+					players: currentUser.name
+				}, {
+					guests: currentUser.name
+				}]
 			},
 			chatQuery = gameObj.chats[gameObj.chats.length - 1];
 
@@ -281,9 +292,21 @@ _.pPushChat = function(gameObj, currentUser, text) {
 			}
 		}, {
 			safe: true,
-			upsert: true,
 			new: true
 		}, function(err, updatedGame) {
+			if (err) return reject(Error.mongoose(500, err));
+			if (!updatedGame) return reject(Error.invalidParameter);
+
+			resolve(updatedGame);
+		});
+	});
+};
+
+_.pPushGuest = function(gameObj, guestName) {
+	console.log('Game.pPushGeust');
+	return new Promise(function(resolve, reject) {
+		gameObj.guests.push(guestName);
+		gameObj.save(function(err, updatedGame) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 

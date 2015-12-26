@@ -39,4 +39,22 @@ router.post('/', function(req, res) {
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });
 
+router.post('/:gameId/invitation', function(req, res) {
+	console.log(`[${req.method}] ${req.url}`);
+	if (!req.headers['x-session-token']) return Error.pipeErrorRender(req, res, Error.invalidParameter);
+	if (!req.query.name) return Error.pipeErrorRender(req, res, Error.invalidParameter);
+
+	var userQuery = {
+			token: req.headers['x-session-token']
+		},
+		gameQuery = {
+			uuid: req.params.gameId
+		};
+	User.pGetOne(userQuery)
+		.then(user => Game.pGetOne(gameQuery, user))
+		.then(game => Game.pPushGuest(game, req.query.name))
+		.then(game => Game.pipeSuccessRender(req, res, game))
+		.catch(error => Error.pipeErrorRender(req, res, error));
+});
+
 module.exports = router;
