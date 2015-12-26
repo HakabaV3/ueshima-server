@@ -3,8 +3,71 @@
 ## API
 
 - エントリーポイントは`http://ueshima.hakaba.xyz/api/v1`
-- `POST /user`以外のリクエストに必ずトークンを付与する
+- `POST /user`、`POST /auth`以外のリクエストに必ずトークンを付与する
 - トークンのキーは`X-Session-Token`
+
+## Auth
+
+GET /auth/me
+POST /auth
+DELETE /auth
+
+### GET /auth/me
+
+### `response`
+
+```
+{
+    "status": 200,
+    "result": {
+    	"user": {
+    		"id": "dlfajoeij0489u20",
+    		"name": "kikurage",
+    		"token": "93814h523nrfewjnr0293u"
+    		"created": 12345678,
+    		"updated": 12345678
+    	}
+    }
+}
+```
+
+### POST /auth
+
+#### `request`
+
+- query
+
+```
+?name=kikurage&password=kikurage_password
+```
+
+#### `response`
+
+```
+{
+    "status": 200,
+    "result": {
+    	"user": {
+    		"id": "dlfajoeij0489u20",
+    		"name": "kikurage",
+    		"token": "93814h523nrfewjnr0293u"
+    		"created": 12345678,
+    		"updated": 12345678
+    	}
+    }
+}
+```
+
+### DELETE /auth
+
+#### `response`
+
+```
+{
+    "status": 200,
+    "result": {}
+}
+```
 
 ## User
 
@@ -12,7 +75,7 @@ POST /user
 
 ### POST /user
 
-#### request
+#### `request`
 
 - query
 
@@ -20,7 +83,7 @@ POST /user
 ?name=kikurage
 ```
 
-#### response
+#### `response`
 
 ```
 {
@@ -43,6 +106,8 @@ GET /game
 POST /game
 
 ### GET /game
+
+#### `response`
 
 ```
 {
