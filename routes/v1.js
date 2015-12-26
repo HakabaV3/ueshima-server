@@ -1,5 +1,6 @@
 var express = require('express'),
 	router = express.Router(),
+	authRouter = require('./v1/auth'),
 	userRouter = require('./v1/user'),
 	gameRouter = require('./v1/game'),
 	moveRouter = require('./v1/move'),
@@ -30,6 +31,7 @@ router.use(function(req, res, next) {
 	next();
 });
 
+router.use('/auth', authRouter);
 router.use('/user', userRouter);
 router.use('/game', gameRouter);
 router.use('/game/:gameId/move', [

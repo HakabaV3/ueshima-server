@@ -5,22 +5,35 @@ var mongoose = require('./db.js'),
 var _ = {},
 	model = mongoose.model('User', schema);
 
-_.pGetOne = function(query) {
+_.pGetOne = function(query, auth) {
 	console.log('User.pGetOne');
+	if (auth && !query.uuid) query.uuid = auth.userId;
 
 	return new Promise(function(resolve, reject) {
 		model.findOne(query, function(err, user) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!user) return reject(Error.unauthorized);
 
+			if (auth) user.token = auth.token;
 			resolve(user);
+		});
+	});
+};
+
+_.pGetPartner = function(query, currentUser) {
+	console.log('User.pGetPartner');
+	return new Promise(function(resolve, reject) {
+		model.findOne(query, function(err, user) {
+			if (err) return reject(Error.mongoose(500, err));
+			if (!user) return reject(Error.unauthorized);
+
+			resolve([currentUser, user]);
 		});
 	});
 };
 
 _.pCreate = function(query) {
 	console.log('User.pCreate');
-	console.log(query);
 	return new Promise(function(resolve, reject) {
 		new model(query)
 			.save(function(err, createdUser) {

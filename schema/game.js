@@ -20,6 +20,7 @@ var GameSchema = new mongoose.Schema({
 });
 
 GameSchema.pre('save', function(next) {
+	console.log('Game.presave');
 	now = parseInt(Date.now() / 1000);
 	this.updated = now;
 	if (!this.created) this.created = now;

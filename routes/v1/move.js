@@ -1,6 +1,6 @@
 var express = require('express'),
 	router = express.Router(),
-	ObjectId = require('mongoose').Types.ObjectId,
+	Auth = require('../../model/auth.js'),
 	User = require('../../model/user.js'),
 	Game = require('../../model/game.js'),
 	Error = require('../../model/error.js');
@@ -11,7 +11,7 @@ router.post('/', function(req, res) {
 	if (!req.query.y) return Error.pipeErrorRender(req, res, Error.invalidParameter);
 	if (!req.headers['x-session-token']) return Error.pipeErrorRender(req, res, Error.unauthorized);
 
-	var userQuery = {
+	var authQuery = {
 			token: req.headers['x-session-token']
 		},
 		gameQuery = {
@@ -20,11 +20,10 @@ router.post('/', function(req, res) {
 		x = parseInt(req.query.x),
 		y = parseInt(req.query.y);
 
-	Promise.all([
-			User.pGetOne(userQuery),
-			Game.pGetOne(gameQuery)
-		])
-		.then(result => Game.pPutMove(x, y, result[1], result[0]))
+	Auth.pGetOne(authQuery)
+		.then(auth => User.pGetOne({}, auth))
+		.then(user => Game.pGetOne(gameQuery, user))
+		.then(game => Game.pPutMove(x, y, game, game.currentUser))
 		.then(game => Game.pipeSuccessRender(req, res, game))
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });

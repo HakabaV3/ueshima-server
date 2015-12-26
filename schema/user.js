@@ -1,10 +1,5 @@
 var mongoose = require('../model/db.js'),
-	crypto = require('crypto'),
 	uuid = require('node-uuid');
-
-function _createToken() {
-	return crypto.createHash('sha512').update(crypto.randomBytes(256).toString()).digest('hex');
-};
 
 var UserSchema = new mongoose.Schema({
 	deleted: {
@@ -18,8 +13,8 @@ var UserSchema = new mongoose.Schema({
 			unique: true
 		}
 	},
+	password: String,
 	uuid: String,
-	token: String,
 	created: Number,
 	updated: Number
 });
@@ -30,13 +25,8 @@ UserSchema.pre('save', function(next) {
 	this.updated = now;
 	if (!this.created) this.created = now;
 	if (!this.uuid) this.uuid = uuid.v4();
-	this.token = _createToken();
 
 	next();
-});
-
-UserSchema.on('index', function(err) {
-	console.log('on index');
 });
 
 module.exports = UserSchema;
