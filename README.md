@@ -8,8 +8,8 @@
 
 ## Auth
 
-GET /auth/me
-POST /auth
+GET /auth/me  
+POST /auth  
 DELETE /auth
 
 ### GET /auth/me
