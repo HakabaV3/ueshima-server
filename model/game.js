@@ -1,6 +1,6 @@
 var mongoose = require('./db.js'),
 	schema = require('../schema/game.js'),
-	GameManager = require('../manager/game.js'),
+	GameHelper = require('../helper/game.js'),
 	Error = require('./error.js');
 
 var _ = {},
@@ -26,7 +26,7 @@ _.pGet = function(user, option) {
 		model.find(query, {}, option, function(err, games) {
 			if (err) return reject(Error.mongoose(500, err));
 			games.map(function(game) {
-				game.points = GameManager.puttablePoints(game.board, game.players, user.name);
+				game.points = GameHelper.puttablePoints(game.board, game.players, user.name);
 			});
 			resolve(games);
 		});
@@ -64,7 +64,7 @@ _.pCreate = function(users) {
 				if (err) return reject(Error.mongoose(500, err));
 				if (!createdGame) return reject(Error.invalidParameter);
 
-				createdGame.points = GameManager.puttablePoints(createdGame.board, createdGame.players, users[0].name);
+				createdGame.points = GameHelper.puttablePoints(createdGame.board, createdGame.players, users[0].name);
 				return resolve(createdGame);
 			});
 	});
@@ -165,12 +165,12 @@ _.pPutMove = function(px, py, game, me) {
 	return new Promise(function(resolve, reject) {
 		console.log(game);
 		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
-		if (!GameManager.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
+		if (!GameHelper.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
 
 		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0];
 
-		game.board = GameManager.putMove(px, py, game.board, game.players, me.name);
-		game.turn = GameManager.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
+		game.board = GameHelper.putMove(px, py, game.board, game.players, me.name);
+		game.turn = GameHelper.checkIsEnablePlayerToPut(game.board, game.players, enemyName) ? enemyName : me.name;
 		game.moves.push({
 			x: px,
 			y: py,
@@ -184,7 +184,7 @@ _.pPutMove = function(px, py, game, me) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, me.name);
+			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, me.name);
 			resolve(updatedGame);
 		})
 	});
@@ -222,7 +222,7 @@ _.pPushChat = function(gameObj, currentUser, text) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, currentUser.name);
+			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, currentUser.name);
 			resolve(updatedGame);
 		});
 	});
@@ -236,7 +236,7 @@ _.pPushGuest = function(gameObj, guestName) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameManager.puttablePoints(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
+			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
 			resolve(updatedGame);
 		});
 	});
