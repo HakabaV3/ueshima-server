@@ -233,3 +233,66 @@ POST /game
 	}
 }
 ```
+
+## Invitation
+
+### POST /game/:gameId/invitation
+
+#### `request`
+
+- query
+
+```
+?name=susaki
+```
+
+#### `response`
+
+```
+{
+	"status": 200,
+	"result": {
+		"game": {
+			"id": "r2984yr9284yhg",
+			"players": [
+				"kikurage",
+				"dooor"
+			],
+			"guests": [
+				"jinssk",
+				"susaki"
+			],
+			"board": [
+				0,
+				0,
+				0,
+				...
+				-1,
+				1,
+				0
+			],
+			"turn": "kikurage",
+			"created": 12345678,
+			"updated": 12345678,
+			"moves": [
+				{
+					"x": 6,
+					"y": 4,
+					"created": 1234567890,
+					"player": "dooor",
+					"playerId": "dooor_id"
+				}
+			],
+			"chats": [
+				{
+					"player": "jinssk",
+					"playerId": "jinssk_id",
+					"text": "dooorがんばれ！",
+					"created": 1234567890
+				}
+			]
+		}
+	}
+}
+```
+
