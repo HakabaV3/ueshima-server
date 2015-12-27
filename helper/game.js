@@ -84,19 +84,26 @@ _.checkIsEnablePlayerToPut = function(board, players, playerName) {
 		}
 	}
 	return false;
-}
+};
 
-_.puttablePoints = function(board, players, playerName) {
-	var points = [];
+_.addPuttablePointsToBoard = function(board, players, playerName) {
 	if (players.indexOf(playerName) === -1) return [];
 	for (var x = 1; x <= 8; x++) {
 		for (var y = 1; y <= 8; y++) {
 			if (_.checkIsPuttable(x, y, board, players, playerName)) {
-				points.push(y * 10 + x);
+				board[y * 10 + x] = 10;
 			}
 		}
 	}
-	return points;
+	return board
+};
+
+_.lastMove = function(game) {
+	return game.moves[game.moves.length - 1];
+};
+
+_.colorOfMove = function(game, move) {
+	return game.players[0] == move.player ? CellType.BLACK : CellType.WHITE;
 }
 
 module.exports = _;

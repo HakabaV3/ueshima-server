@@ -26,9 +26,11 @@ _.pGet = function(user, option) {
 	return new Promise(function(resolve, reject) {
 		model.find(query, {}, option, function(err, games) {
 			if (err) return reject(Error.mongoose(500, err));
-			games.map(function(game) {
-				game.points = GameHelper.puttablePoints(game.board, game.players, user.name);
-			});
+			if (req.query.app) {
+				games.map(function(game) {
+					game.board = GameHelper.addPuttablePointsToBoard(game.board, game.players, user.name);
+				});
+			}
 			resolve(games);
 		});
 	});
@@ -65,7 +67,9 @@ _.pCreate = function(users) {
 				if (err) return reject(Error.mongoose(500, err));
 				if (!createdGame) return reject(Error.invalidParameter);
 
-				createdGame.points = GameHelper.puttablePoints(createdGame.board, createdGame.players, users[0].name);
+				if (req.query.app) {
+					createdGame.board = GameHelper.addPuttablePointsToBoard(createdGame.board, createdGame.players, users[0].name);
+				}
 				return resolve(createdGame);
 			});
 	});
@@ -73,6 +77,10 @@ _.pCreate = function(users) {
 
 _.pipeSuccessRender = function(req, res, game) {
 	console.log('Game.pipeSuccessRender\n');
+	if (req.query.app) {
+		var move = GameHelper.lastMove(game);
+		game.board[move.y * 10 + move.x] = 11 * GameHelper.colorOfMove(game, move);
+	}
 	var gameObj = {
 		id: game.uuid,
 		players: game.players,
@@ -88,7 +96,6 @@ _.pipeSuccessRender = function(req, res, game) {
 			}
 		}),
 		board: game.board,
-		points: game.points,
 		chats: game.chats.map(function(chat) {
 			return {
 				player: chat.player,
@@ -109,6 +116,10 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 	console.log('Game.pipeSuccessRendeAll\n');
 	return res.ok(200, {
 		games: games.map(function(game) {
+			if (req.query.app) {
+				var move = GameHelper.lastMove(game);
+				game.board[move.y * 10 + move.x] = 11 * GameHelper.colorOfMove(game, move);
+			}
 			return {
 				id: game.uuid,
 				players: game.players,
@@ -124,7 +135,6 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 					}
 				}),
 				board: game.board,
-				points: game.points,
 				chats: game.chats,
 				created: game.created,
 				updated: game.updated
@@ -167,7 +177,9 @@ _.pPutMove = function(px, py, game, me) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, me.name);
+			if (req.query.app) {
+				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, me.name);
+			}
 			resolve(updatedGame);
 		});
 	});
@@ -204,7 +216,9 @@ _.pPushChat = function(gameObj, currentUser, text) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, currentUser.name);
+			if (req.query.app) {
+				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, currentUser.name);
+			}
 			resolve(updatedGame);
 		});
 	});
@@ -218,7 +232,9 @@ _.pPushGuest = function(gameObj, guestName) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			updatedGame.points = GameHelper.puttablePoints(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
+			if (req.query.app) {
+				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
+			}
 			resolve(updatedGame);
 		});
 	});
