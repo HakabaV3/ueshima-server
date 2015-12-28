@@ -1,4 +1,6 @@
-var _ = {},
+var _ = {
+		currentUser: null
+	},
 	crypto = require('crypto');
 
 _.toHashedPassword = function(password) {

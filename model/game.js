@@ -1,5 +1,6 @@
 var mongoose = require('./db.js'),
 	schema = require('../schema/game.js'),
+	AuthHelper = require('../helper/auth.js'),
 	GameHelper = require('../helper/game.js'),
 	Error = require('./error.js');
 
@@ -26,11 +27,7 @@ _.pGet = function(user, option) {
 	return new Promise(function(resolve, reject) {
 		model.find(query, {}, option, function(err, games) {
 			if (err) return reject(Error.mongoose(500, err));
-			if (req.query.app) {
-				games.map(function(game) {
-					game.board = GameHelper.addPuttablePointsToBoard(game.board, game.players, user.name);
-				});
-			}
+
 			resolve(games);
 		});
 	});
@@ -38,8 +35,13 @@ _.pGet = function(user, option) {
 
 _.pGetOne = function(query, user) {
 	console.log('Game.pGetOne');
-	if (user) query.players = user.name;
-	console.log(query);
+	if (user) {
+		query.$or = [{
+			players: user.name
+		}, {
+			guests: user.name
+		}];
+	}
 
 	return new Promise(function(resolve, reject) {
 		model.findOne(query, function(err, game) {
@@ -47,7 +49,6 @@ _.pGetOne = function(query, user) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!game) return reject(Error.invalidParameter);
 
-			game.currentUser = user;
 			resolve(game);
 		});
 	});
@@ -67,9 +68,6 @@ _.pCreate = function(users) {
 				if (err) return reject(Error.mongoose(500, err));
 				if (!createdGame) return reject(Error.invalidParameter);
 
-				if (req.query.app) {
-					createdGame.board = GameHelper.addPuttablePointsToBoard(createdGame.board, createdGame.players, users[0].name);
-				}
 				return resolve(createdGame);
 			});
 	});
@@ -77,10 +75,7 @@ _.pCreate = function(users) {
 
 _.pipeSuccessRender = function(req, res, game) {
 	console.log('Game.pipeSuccessRender\n');
-	if (req.query.app) {
-		var move = GameHelper.lastMove(game);
-		game.board[move.y * 10 + move.x] = 11 * GameHelper.colorOfMove(game, move);
-	}
+	game.board = _filterBoardByPlatform(req.headers['x-platform'], game);
 	var gameObj = {
 		id: game.uuid,
 		players: game.players,
@@ -116,10 +111,7 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 	console.log('Game.pipeSuccessRendeAll\n');
 	return res.ok(200, {
 		games: games.map(function(game) {
-			if (req.query.app) {
-				var move = GameHelper.lastMove(game);
-				game.board[move.y * 10 + move.x] = 11 * GameHelper.colorOfMove(game, move);
-			}
+			game.board = _filterBoardByPlatform(req.headers['x-platform'], game);
 			return {
 				id: game.uuid,
 				players: game.players,
@@ -143,15 +135,18 @@ _.pipeSuccessRenderAll = function(req, res, games) {
 	});
 };
 
-_.pPutMove = function(px, py, game, me) {
+_.pPutMove = function(px, py, game) {
 	console.log('Game.pPutMove');
 	return new Promise(function(resolve, reject) {
-		if (game.turn !== me.name) return reject(Error.invalidPlayer(me.name));
-		if (!GameHelper.checkIsPuttable(px, py, game.board, game.players, me.name)) return reject(Error.invalidMove(px, py));
+		console.log(`${game}\n${AuthHelper.currentUser}`);
+		if (game.turn !== AuthHelper.currentUser.name) return reject(Error.invalidPlayer(AuthHelper.currentUser.name));
+		console.log('Game.pPutMove');
+		if (!GameHelper.checkIsPuttable(px, py, game.board, game.players, AuthHelper.currentUser.name)) return reject(Error.invalidMove(px, py));
 
-		var enemyName = game.players[0] === me.name ? game.players[1] : game.players[0],
-			board = GameHelper.putMove(px, py, game.board, game.players, me.name),
-			turn = GameHelper.checkIsEnablePlayerToPut(board, game.players, enemyName) ? enemyName : me.name,
+		console.log('Game.pPutMove');
+		var enemyName = game.players[0] === AuthHelper.currentUser.name ? game.players[1] : game.players[0],
+			board = GameHelper.putMove(px, py, game.board, game.players, AuthHelper.currentUser.name),
+			turn = GameHelper.checkIsEnablePlayerToPut(board, game.players, enemyName) ? enemyName : AuthHelper.currentUser.name,
 			gameQuery = {
 				uuid: game.uuid
 			},
@@ -159,11 +154,12 @@ _.pPutMove = function(px, py, game, me) {
 				x: px,
 				y: py,
 				gameId: game.uuid,
-				playerId: me.uuid,
-				player: me.name,
+				playerId: AuthHelper.currentUser.uuid,
+				player: AuthHelper.currentUser.name,
 				created: parseInt(Date.now() / 1000),
 				updated: parseInt(Date.now() / 1000)
 			});
+		console.log('Game.pPutMove');
 		model.findOneAndUpdate(gameQuery, {
 			turn: turn,
 			board: board,
@@ -174,23 +170,22 @@ _.pPutMove = function(px, py, game, me) {
 			safe: true,
 			new: true
 		}, function(err, updatedGame) {
+			console.log('Game.pPutMove');
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
+			console.log('Game.pPutMove');
 
-			if (req.query.app) {
-				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, me.name);
-			}
 			resolve(updatedGame);
 		});
 	});
 };
 
-_.pPushChat = function(gameObj, currentUser, text) {
+_.pPushChat = function(gameObj, text) {
 	console.log('Game.pPushChat');
 	gameObj.chats.push({
 		gameId: gameObj.uuid,
-		player: currentUser.name,
-		playerId: currentUser.uuid,
+		player: AuthHelper.currentUser.name,
+		playerId: AuthHelper.currentUser.uuid,
 		text: text,
 		created: parseInt(Date.now() / 1000)
 	});
@@ -198,9 +193,9 @@ _.pPushChat = function(gameObj, currentUser, text) {
 		var gameQuery = {
 				uuid: gameObj.uuid,
 				$or: [{
-					players: currentUser.name
+					players: AuthHelper.currentUser.name
 				}, {
-					guests: currentUser.name
+					guests: AuthHelper.currentUser.name
 				}]
 			},
 			chatQuery = gameObj.chats[gameObj.chats.length - 1];
@@ -216,9 +211,6 @@ _.pPushChat = function(gameObj, currentUser, text) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			if (req.query.app) {
-				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, currentUser.name);
-			}
 			resolve(updatedGame);
 		});
 	});
@@ -232,12 +224,19 @@ _.pPushGuest = function(gameObj, guestName) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!updatedGame) return reject(Error.invalidParameter);
 
-			if (req.query.app) {
-				updatedGame.board = GameHelper.addPuttablePointsToBoard(updatedGame.board, updatedGame.players, gameObj.currentUser.name);
-			}
 			resolve(updatedGame);
 		});
 	});
 };
+
+function _filterBoardByPlatform(platform, game) {
+	if (platform == 'ios') {
+		var move = GameHelper.lastMove(game);
+		if (move) game.board[move.y * 10 + move.x] = 11 * GameHelper.colorOfMove(game, move);
+		game.board = GameHelper.addPuttablePointsToBoard(game.board, game.players, AuthHelper.currentUser.name);
+	}
+	console.log(platform);
+	return game.board;
+}
 
 module.exports = _;

@@ -10,6 +10,8 @@ router.post('/', function(req, res) {
 	if (!req.query.text) return Error.pipeErrorRender(req, res, Error.invalidParameter);
 	if (!req.headers['x-session-token']) return Error.pipeErrorRender(req, res, Error.unauthorized);
 
+	console.log('chat');
+
 	var authQuery = {
 			token: req.headers['x-session-token']
 		},
@@ -19,7 +21,7 @@ router.post('/', function(req, res) {
 	Auth.pGetOne(authQuery)
 		.then(auth => User.pGetOne({}, auth))
 		.then(user => Game.pGetOne(gameQuery, user))
-		.then(game => Game.pPushChat(game, game.currentUser, req.query.text))
+		.then(game => Game.pPushChat(game, req.query.text))
 		.then(game => Game.pipeSuccessRender(req, res, game))
 		.catch(error => Error.pipeErrorRender(req, res, error));
 });

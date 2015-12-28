@@ -1,5 +1,6 @@
 var mongoose = require('./db.js'),
 	schema = require('../schema/user.js'),
+	AuthHelper = require('../helper/auth.js'),
 	Error = require('./error.js');
 
 var _ = {},
@@ -14,7 +15,10 @@ _.pGetOne = function(query, auth) {
 			if (err) return reject(Error.mongoose(500, err));
 			if (!user) return reject(Error.unauthorized);
 
-			if (auth) user.token = auth.token;
+			if (auth) {
+				AuthHelper.currentUser = user;
+				user.token = auth.token;
+			}
 			resolve(user);
 		});
 	});
@@ -40,6 +44,7 @@ _.pCreate = function(query) {
 				if (err) return reject(Error.mongoose(500, err));
 				if (!createdUser) return reject(Error.invalidParameter);
 
+				AuthHelper.currentUser = createdUser;
 				return resolve(createdUser);
 			});
 	});
